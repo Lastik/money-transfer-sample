@@ -1,11 +1,14 @@
 package core.dal
 
 import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestKit
-import akka.util.Timeout
-import util.ActorSpecBase
 import akka.pattern.ask
+import akka.testkit.TestKit
+import common.ErrorMessage
 import core.model.{Account, AccountFixture, AccountId}
+import squants.market.RUB
+import _root_.util.ActorSpecBase
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Promise
 
@@ -13,29 +16,47 @@ class AccountAccessorSpec extends TestKit(ActorSystem("AccountAccessorSpec")) wi
 
   val accountAccessor = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
 
-  val createdAccountIdPromise: Promise[AccountId] = Promise()
+  val accountPromise: Promise[Account] = Promise()
+
+  def accountIdFtr = accountPromise.future.map(_.id)
+
+  def createAccount(account: Account): AccountId = {
+    accountAccessor.ask(AccountAccessor.CreateEntity(account)).mapTo[AccountId].awaitResult
+  }
 
   "AccountAccessor" must {
 
-    "Be able to create new account" in {
-      val createAccountResult = accountAccessor.ask(AccountAccessor.CreateEntity(new AccountFixture().entity)).awaitResult
+    val accountAfterWithdrawPromise: Promise[Account] = Promise()
 
-      createAccountResult match{
-        case accountId: AccountId =>
-          createdAccountIdPromise.success(accountId)
-        case _ => fail()
+    "Be able to withdraw money from the account" in {
+      val account = new AccountFixture().entity
+
+      createAccount(account)
+      accountPromise.success(account)
+
+      val withdrawResult = accountAccessor.ask(AccountAccessor.WithdrawMoney(account.id, RUB(50))).
+        mapTo[Either[ErrorMessage, Account]].awaitResult
+
+      withdrawResult match {
+        case Left(error) => fail()
+        case Right(updatedAccount) =>
+          account.balance - updatedAccount.balance shouldEqual RUB(50)
+          accountAfterWithdrawPromise.success(updatedAccount)
       }
     }
 
-    "Be able to find existing account by id" in {
-      val accountId = createdAccountIdPromise.future.awaitResult
-      val findAccountResult = accountAccessor.ask(AccountAccessor.FindEntityById(accountId)).awaitResult
+    "Be able to deposit money to the account" in {
+      val account = accountAfterWithdrawPromise.future.awaitResult
 
-      findAccountResult match{
-        case Some(account: Account) =>
-          account.id shouldEqual accountId
-        case _  => fail()
+      val depositResult = accountAccessor.ask(AccountAccessor.DepositMoney(account.id, RUB(50))).
+        mapTo[Either[ErrorMessage, Account]].awaitResult
+
+      depositResult match {
+        case Left(error) => fail()
+        case Right(updatedAccount) =>
+          updatedAccount.balance - account.balance shouldEqual RUB(50)
       }
     }
+
   }
 }

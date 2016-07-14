@@ -22,24 +22,29 @@ case class Account(id: AccountId = AccountId(), customerId: CustomerId, balance:
 
   require(balance.value >= 0, "Balance on the account should be >= 0")
 
-  def withdrawMoney(toWithdraw: Money): Either[ErrorMessage, Account] = {
+  def withdrawMoney(amount: Money) = {
+    updateMoneyBalance(-amount)
+  }
 
-    if (balance.currency != toWithdraw.currency) {
+  def depositMoney(amount: Money) = {
+    updateMoneyBalance(amount)
+  }
+
+  private def updateMoneyBalance(delta: Money) = {
+    if (balance.currency != delta.currency) {
       Left(WrongCurrencyForAmountSpecifiedErrorMsg)
     }
     else {
-      val updatedAmountOfMoney = balance - toWithdraw
+      val updatedAmountOfMoney = balance + delta
 
       if (updatedAmountOfMoney.value < 0) {
         Left(InsufficientAmountOfMoneyOnAccountErrorMgs)
       }
       else {
-        Right(this.copy(balance = balance - toWithdraw))
+        Right(this.copy(balance = balance + delta))
       }
     }
   }
-
-  def depositMoney(toDeposit: Money) = this.copy(balance = balance + toDeposit)
 }
 
 object Account {

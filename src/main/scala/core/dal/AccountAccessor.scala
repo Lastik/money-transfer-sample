@@ -32,20 +32,21 @@ class AccountAccessor extends DataAccessor[Account, AccountId] {
     case GetCustomerAccounts(customerId) =>
       sender ! getAllEntities.filter(_.customerId == customerId)
     case WithdrawMoney(accountId, amount) =>
-      val result = findEntityById(accountId) match {
-        case Some(account) =>
-          account.withdrawMoney(amount) match {
-            case Left(errorMessage) => Left(errorMessage)
-            case Right(updatedAccount) =>
-              updateEntity(updatedAccount)
-              Right(updatedAccount)
-          }
-        case None => Left(Errors.AccountNotFound(accountId))
-      }
-      sender ! result
+      sender ! updateAccount(accountId, account => account.withdrawMoney(amount))
     case DepositMoney(accountId, amount) =>
-      val updatedAccount = getEntityById(accountId).depositMoney(amount)
-      updateEntity(updatedAccount)
-      sender ! updatedAccount
+      sender ! updateAccount(accountId, account => account.depositMoney(amount))
+  }
+
+  def updateAccount(accountId: AccountId, updateFunc: Function[Account, Either[ErrorMessage, Account]]) = {
+    findEntityById(accountId) match {
+      case Some(account) =>
+        updateFunc(account) match {
+          case Left(errorMessage) => Left(errorMessage)
+          case Right(updatedAccount) =>
+            updateEntity(updatedAccount)
+            Right(updatedAccount)
+        }
+      case None => Left(Errors.AccountNotFound(accountId))
+    }
   }
 }

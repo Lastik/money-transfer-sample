@@ -15,8 +15,6 @@ trait DataAccessorProtocol {
 
   case class CreateEntity[EntityType <: ModelEntity, KeyType <: ModelEntityKey](entity: EntityType)
 
-  case class UpdateEntity[EntityType <: ModelEntity, KeyType <: ModelEntityKey](entity: EntityType)
-
 }
 
 object DataAccessor extends DataAccessorProtocol
@@ -38,9 +36,6 @@ abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey
       sender ! findEntityById(id.asInstanceOf[KeyType]).getOrElse(throw new IllegalArgumentException("Entity with specified id not found"))
     case CreateEntity(entity) =>
       createEntity(entity = entity.asInstanceOf[EntityType])
-      sender ! entity.id
-    case UpdateEntity(entity) =>
-      updateEntity(entity = entity.asInstanceOf[EntityType])
       sender ! entity.id
   }
 
