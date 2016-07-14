@@ -1,8 +1,8 @@
 package web
 
-import core.{CoreActors, Core}
-import api.Api
+import core.{Core, CoreActors}
 import akka.io.IO
+import api.Api
 import spray.can.Http
 
 /**

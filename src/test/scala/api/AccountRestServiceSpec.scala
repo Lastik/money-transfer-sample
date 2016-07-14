@@ -1,6 +1,6 @@
-package api
+package integration.api
 
-import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
+/*import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
 import core._
 import core.model.{Account, Customer}
 import core.services.{CustomersDTO, TransferMoneyRequestDTO, TransferMoneyResponseDTO}
@@ -56,3 +56,4 @@ class AccountRestServiceSpec extends Specification with Specs2RouteTest with Htt
     }
   }
 }
+*/

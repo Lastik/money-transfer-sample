@@ -3,7 +3,7 @@ package api
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
-import core.model.Account
+import core.model.{Account, AccountId}
 import core.services._
 import spray.json.DefaultJsonProtocol
 import spray.routing.Directives
@@ -21,20 +21,20 @@ class AccountRestService(implicit executionContext: ExecutionContext, implicit v
     pathPrefix("accounts") {
       path(JavaUUID) {
         accountId =>
-          onComplete(accountService.ask(AccountService.GetAccountById(accountId)).mapTo[Account]) {
-            case scala.util.Success(res) => complete(res)
-            case scala.util.Failure(ex) => failWith(ex)
-          }
-      } ~
-        path("transferMoney") {
+          get {
+            onComplete(accountService.ask(AccountService.GetAccountById(accountId)).mapTo[Account]) {
+              case scala.util.Success(res) => complete(res)
+              case scala.util.Failure(ex) => failWith(ex)
+            }
+          } ~
           post {
-            entity(as[TransferMoneyRequestDTO]) { transferMoneyRequestDTO =>
-              onComplete(accountService.ask(AccountService.TransferMoney(transferMoneyRequestDTO)).mapTo[TransferMoneyResponseDTO]) {
+            entity(as[AccountDTO]) { accountDTO =>
+              onComplete(accountService.ask(AccountService.CreateAccount(accountDTO)).mapTo[AccountId]) {
                 case scala.util.Success(res) => complete(res)
                 case scala.util.Failure(ex) => failWith(ex)
               }
             }
           }
-        }
+      }
     }
 }

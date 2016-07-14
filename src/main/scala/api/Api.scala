@@ -19,7 +19,8 @@ trait Api extends RouteConcatenation with Directives {
 
   val routes =
     new CustomerRestService().route ~
-      new AccountRestService().route
+      new AccountRestService().route ~
+      new TransactionRestService().route
 
   val rootService = system.actorOf(Props(new RoutedHttpService(routes)))
 

@@ -1,4 +1,4 @@
-package api
+package integration.api
 
 import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
 import core._
@@ -15,7 +15,7 @@ import util.AwaitHelper
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 
-class CustomerRestServiceSpec extends Specification with Specs2RouteTest with HttpService
+/*class CustomerRestServiceSpec extends Specification with Specs2RouteTest with HttpService
   with CoreActors with Core  with SprayJsonSupport with BeforeAfter with DefaultTimeout
   with CustomerJsonProtocol with AccountJsonProtocol with DefaultJsonProtocol with AwaitHelper {
 
@@ -53,3 +53,4 @@ class CustomerRestServiceSpec extends Specification with Specs2RouteTest with Ht
     }
   }
 }
+*/

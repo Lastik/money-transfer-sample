@@ -3,7 +3,8 @@ package api
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
-import core.services.{AccountService, AccountsDTO, CustomerService, CustomersDTO}
+import core.model.CustomerId
+import core.services._
 import spray.json.DefaultJsonProtocol
 import spray.routing.Directives
 import spray.httpx.SprayJsonSupport._
@@ -24,14 +25,22 @@ class CustomerRestService(implicit executionContext: ExecutionContext, implicit 
             case scala.util.Success(res) => complete(res)
             case scala.util.Failure(ex) => failWith(ex)
           }
-        }
+        } ~
+        post(entity(as[CustomerDTO]) { customerDTO =>
+          onComplete(customerService.ask(CustomerService.CreateCustomer(customerDTO)).mapTo[CustomerId]) {
+            case scala.util.Success(res) => complete(res)
+            case scala.util.Failure(ex) => failWith(ex)
+          }
+        })
       } ~
       pathPrefix(JavaUUID / "accounts") {
         customerId =>
           pathEnd {
-            onComplete(accountService.ask(AccountService.GetCustomerAccounts(customerId)).mapTo[AccountsDTO]) {
-              case scala.util.Success(res) => complete(res)
-              case scala.util.Failure(ex) => failWith(ex)
+            get {
+              onComplete(accountService.ask(AccountService.GetCustomerAccounts(customerId)).mapTo[AccountsDTO]) {
+                case scala.util.Success(res) => complete(res)
+                case scala.util.Failure(ex) => failWith(ex)
+              }
             }
           }
       }

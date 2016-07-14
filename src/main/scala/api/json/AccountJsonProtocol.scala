@@ -1,7 +1,7 @@
 package api.json
 
 import core.model.{Account, AccountId}
-import core.services.{AccountsDTO, TransferMoneyRequestDTO, TransferMoneyResponseDTO}
+import core.services.{AccountDTO, AccountsDTO}
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, JsonFormat}
 import squants.market.Money
 
@@ -25,12 +25,9 @@ trait AccountJsonProtocol {
 
   import Account._
 
-  implicit val accountJsonFormat = jsonFormat(Account.apply, "id", "customerId", "money")
+  implicit val accountJsonFormat = jsonFormat(Account.apply, "id", "customerId", "balance")
+
+  implicit val accountDTOJsonFormat = jsonFormat2(AccountDTO.apply)
 
   implicit val accountsDTOJsonFormat = jsonFormat1(AccountsDTO.apply)
-
-  implicit val transferMoneyRequestDTOJsonFormat = jsonFormat3(TransferMoneyRequestDTO.apply)
-
-  implicit val transferMoneyResponseDTOJsonFormat = jsonFormat2(TransferMoneyResponseDTO.apply)
-
 }

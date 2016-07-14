@@ -7,5 +7,8 @@ trait ModelEntityKey {
 }
 
 trait ModelEntity {
-  def id: ModelEntityKey
+
+  type KeyType <: ModelEntityKey
+
+  def id: KeyType
 }

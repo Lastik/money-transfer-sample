@@ -19,11 +19,12 @@ libraryDependencies ++= Seq(
   "io.spray"            %% "spray-can"        % sprayVersion,
   "io.spray"            %% "spray-routing"    % sprayVersion force(),
   "io.spray"           %% "spray-json"       % sprayJsonVersion,
-  "io.spray"            %% "spray-testkit"    % sprayVersion % "test",
-  "com.typesafe.akka"  %% "akka-testkit"     % akkaVersion        % "test",
   "com.novocode"        % "junit-interface"  % "0.7"          % "test->default",
   "joda-time" % "joda-time" % "2.9.4",
-  "com.squants"        %% "squants"  % "0.5.3"
+  "com.squants"        %% "squants"  % "0.5.3",
+  "org.scalatest" %% "scalatest" % "2.2.2" % "test",
+  "com.typesafe.akka"  %% "akka-testkit"     % akkaVersion        % "test",
+  "io.spray"            %% "spray-testkit"    % sprayVersion % "test"
 )
 
 scalacOptions ++= Seq(
