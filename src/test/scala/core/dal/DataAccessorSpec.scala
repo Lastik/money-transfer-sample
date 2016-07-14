@@ -10,17 +10,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Promise
 
-class DataAccessorSpec extends TestKit(ActorSystem("DataAccessorSpec")) with ActorSpecBase {
+class DataAccessorSpec extends TestKit(ActorSystem("DataAccessor")) with ActorSpecBase {
 
   val testEntityAccessor = system.actorOf(Props(classOf[TestEntityAccessor]), TestEntityAccessor.Id)
 
   val testEntityPromise: Promise[TestEntity] = Promise()
 
   def testEntityIdFtr = testEntityPromise.future.map(_.id)
-
-  def createTestEntity(testEntity: TestEntity): TestEntityId = {
-    testEntityAccessor.ask(TestEntityAccessor.CreateEntity(testEntity)).mapTo[TestEntityId].awaitResult
-  }
 
   "DataAccessor" must {
 
@@ -77,5 +73,9 @@ class DataAccessorSpec extends TestKit(ActorSystem("DataAccessorSpec")) with Act
         case _ => fail()
       }
     }
+  }
+
+  def createTestEntity(testEntity: TestEntity): TestEntityId = {
+    testEntityAccessor.ask(TestEntityAccessor.CreateEntity(testEntity)).mapTo[TestEntityId].awaitResult
   }
 }

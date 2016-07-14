@@ -12,11 +12,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Promise
 
-class AccountAccessorSpec extends TestKit(ActorSystem("AccountAccessorSpec")) with ActorSpecBase {
+class AccountAccessorSpec extends TestKit(ActorSystem("AccountAccessor")) with ActorSpecBase {
 
   val accountAccessor = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
 
   val accountPromise: Promise[Account] = Promise()
+
+  val accountAfterWithdrawPromise: Promise[Account] = Promise()
 
   def accountIdFtr = accountPromise.future.map(_.id)
 
@@ -25,8 +27,6 @@ class AccountAccessorSpec extends TestKit(ActorSystem("AccountAccessorSpec")) wi
   }
 
   "AccountAccessor" must {
-
-    val accountAfterWithdrawPromise: Promise[Account] = Promise()
 
     "Be able to withdraw money from the account" in {
       val account = new AccountFixture().entity
