@@ -1,15 +1,14 @@
 package core.services
 
 import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestKit
-import core.dal.{AccountAccessor, CustomerAccessor}
-import core.model.{Account, AccountId, CustomerId}
-import util.ActorSpecBase
 import akka.pattern.ask
+import akka.testkit.TestKit
 import common.{ErrorMessage, ServiceSuccess}
+import core.dal.{AccountAccessor, CustomerAccessor}
+import core.model.{AccountId, CustomerId}
 import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
-import squants.Money
 import squants.market.RUB
+import util.ActorSpecBase
 
 import scala.concurrent.Promise
 
@@ -109,10 +108,5 @@ class AccountServiceSpec extends TestKit(ActorSystem("AccountService")) with Act
         case Right(ServiceSuccess(foundAccountsDTO)) => fail()
       }
     }
-  }
-
-  def findCustomerAccounts(customerId: CustomerId) = {
-    accountService.ask(AccountService.FindCustomerAccounts(customerId)).
-      mapTo[Either[ErrorMessage, ServiceSuccess[AccountsDTO]]].awaitResult
   }
 }

@@ -31,7 +31,7 @@ with CustomerServiceHelper {
       val customerId = customerIdPromise.future.awaitResult
       val otherCustomerId = createCustomer("Some customer 2")
 
-      val allCustomers = customerService.ask(CustomerService.GetAllCustomers()).mapTo[CustomersDTO].awaitResult
+      val allCustomers = getAllCustomers
 
       allCustomers.data.length shouldEqual 2
 

@@ -5,7 +5,7 @@ import akka.pattern.ask
 import common.{ErrorMessage, ServiceSuccess}
 import core.DefaultTimeout
 import core.model.{Account, AccountId, CustomerId}
-import core.services.{AccountDTO, AccountService, CustomerDTO, CustomerService}
+import core.services._
 import squants._
 import util.{ActorSpecBase, AwaitHelper}
 
@@ -36,5 +36,10 @@ trait AccountServiceHelper {
   def findAccountById(accountId: AccountId) = {
     accountService.ask(AccountService.FindAccountById(accountId)).
       mapTo[Either[ErrorMessage, ServiceSuccess[Account]]].awaitResult
+  }
+
+  def findCustomerAccounts(customerId: CustomerId) = {
+    accountService.ask(AccountService.FindCustomerAccounts(customerId)).
+      mapTo[Either[ErrorMessage, ServiceSuccess[AccountsDTO]]].awaitResult
   }
 }

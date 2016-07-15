@@ -68,11 +68,5 @@ object Account {
     case object InsufficientAmountOfMoneyOnAccountErrorMgs extends ErrorMessage {
       val text = "Insufficient amount of money on the account!"
     }
-
-    case object WrongCurrencyForAmountSpecifiedErrorMsg extends ErrorMessage {
-      val text = "Wrong currency for amount specified error msg"
-    }
-
   }
-
 }
