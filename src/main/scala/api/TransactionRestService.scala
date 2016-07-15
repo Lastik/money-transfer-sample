@@ -3,7 +3,7 @@ package api
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import api.json.{AccountJsonProtocol, CommonJsonProtocol, CustomerJsonProtocol, TransactionJsonProtocol}
-import common.{ErrorMessage}
+import common.{ErrorMessage, ServiceSuccess}
 import core.model.Transaction
 import core.services._
 import spray.httpx.SprayJsonSupport._
@@ -21,11 +21,8 @@ class TransactionRestService(implicit executionContext: ExecutionContext, implic
     pathPrefix("transaction" / "process") {
       pathEnd {
         post(entity(as[Transaction]) { transaction =>
-          onComplete(transactionService.ask(TransactionService.ProcessTransaction(transaction)).mapTo[Either[ErrorMessage, Transaction]]) {
-            case scala.util.Success(res) => res match{
-              case Left(_) => complete("success")
-              case Right(errorMsg) => complete(errorMsg)
-            }
+          onComplete(transactionService.ask(TransactionService.ProcessTransaction(transaction)).mapTo[Either[ErrorMessage, ServiceSuccess[String]]]) {
+            case scala.util.Success(res) => complete(res)
             case scala.util.Failure(ex) => failWith(ex)
           }
         })

@@ -72,6 +72,8 @@ class TransactionService extends Actor with LookupBusinessActor with DefaultTime
           Future successful Left(Error.TargetAccountDoesntExistErrorMgs)
         case (None, Some(_)) =>
           Future successful Left(Error.SourceAccountDoesntExistErrorMsg)
+        case (None, None) =>
+          Future successful Left(Error.SourceAccountDoesntExistErrorMsg concat Error.TargetAccountDoesntExistErrorMgs)
       }
     }).flatMap(identity)
   }
