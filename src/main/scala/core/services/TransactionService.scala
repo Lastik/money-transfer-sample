@@ -1,17 +1,15 @@
 package core.services
 
 import akka.actor.Actor
-import common.ErrorMessage
+import common.{ErrorMessage, ServiceSuccess}
 import common.actors.LookupBusinessActor
 import core.DefaultTimeout
 import core.dal.{AccountAccessor, CustomerAccessor}
 import core.model.{Account, AccountId, Transaction}
 import squants.Money
-
 import akka.pattern.{ask, pipe}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 
 object TransactionService {
@@ -42,15 +40,10 @@ class TransactionService extends Actor with LookupBusinessActor with DefaultTime
 
   def receive: Receive = {
     case ProcessTransaction(transaction) =>
-      processTransaction(transaction).map {
-        case Left(errorMessage) =>
-          ProcessTransactionResponseDTO(succeeded = false, message = errorMessage.text)
-        case Right(_) =>
-          ProcessTransactionResponseDTO(succeeded = true, message = "Transaction processed successfully")
-      } pipeTo sender
+      processTransaction(transaction) pipeTo sender
   }
 
-  def processTransaction(transaction: Transaction): Future[Either[ErrorMessage, Transaction]] = {
+  def processTransaction(transaction: Transaction): Future[Either[ErrorMessage, ServiceSuccess[String]]] = {
 
     val (fromAccountId, toAccountId, amount) = (transaction.from, transaction.to, transaction.amount)
 
@@ -72,7 +65,7 @@ class TransactionService extends Actor with LookupBusinessActor with DefaultTime
                     case Left(rollbackErrorMsg) => Left(errorMessage.concat(rollbackErrorMsg))
                     case Right(_) => Left(errorMessage)
                   }
-                case Right(_) => Future successful Right(transaction)
+                case Right(_) => Future successful Right(ServiceSuccess("success"))
               }
           }
         case (Some(_), None) =>
@@ -95,7 +88,5 @@ class TransactionService extends Actor with LookupBusinessActor with DefaultTime
     accountAccessor.ask(AccountAccessor.DepositMoney(accountId, amount)).mapTo[Either[ErrorMessage, AccountId]]
   }
 }
-
-case class ProcessTransactionResponseDTO(succeeded: Boolean, message: String)
 
 

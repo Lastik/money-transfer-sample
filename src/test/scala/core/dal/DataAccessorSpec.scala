@@ -65,11 +65,34 @@ class DataAccessorSpec extends TestKit(ActorSystem("DataAccessor")) with ActorSp
       val testEntityId = testEntityIdFtr.awaitResult
       val otherTestEntityId = createTestEntity(TestEntity())
 
-      val getAllTestEntitysResult = testEntityAccessor.ask(TestEntityAccessor.GetAllEntities()).awaitResult
+      val getAllTestEntitiesResult = testEntityAccessor.ask(TestEntityAccessor.GetAllEntities()).awaitResult
 
-      getAllTestEntitysResult match{
-        case listOfTestEntitys: List[Any] if listOfTestEntitys.forall(_.isInstanceOf[TestEntity]) =>
-          listOfTestEntitys.length shouldEqual 2
+      getAllTestEntitiesResult match{
+        case listOfTestEntities: List[Any] if listOfTestEntities.forall(_.isInstanceOf[TestEntity]) =>
+          listOfTestEntities.length shouldEqual 2
+        case _ => fail()
+      }
+    }
+
+    "be able to check if entity exists by it's id" in {
+      val testEntityId = testEntityIdFtr.awaitResult
+
+      val existsRes =  testEntityAccessor.ask(TestEntityAccessor.CheckIfEntityExistsById(testEntityId)).awaitResult
+
+      existsRes match {
+        case exists: Boolean =>
+          exists shouldEqual true
+        case _ => fail()
+      }
+    }
+
+    "be able to check if entity doesn't exists by id" in {
+
+      val existsRes =  testEntityAccessor.ask(TestEntityAccessor.CheckIfEntityExistsById(TestEntityId())).awaitResult
+
+      existsRes match {
+        case exists: Boolean =>
+          exists shouldEqual false
         case _ => fail()
       }
     }

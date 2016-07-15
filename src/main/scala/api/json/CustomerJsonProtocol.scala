@@ -5,7 +5,7 @@ import core.services.{CustomerDTO, CustomersDTO}
 import spray.json.DefaultJsonProtocol
 
 trait CustomerJsonProtocol {
-  this: DefaultJsonProtocol =>
+  this: DefaultJsonProtocol with CommonJsonProtocol =>
 
   implicit val customerIdJsonFormat = new ModelEntityKeyJsonFormat[CustomerId]
 

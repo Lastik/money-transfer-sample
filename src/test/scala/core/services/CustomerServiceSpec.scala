@@ -1,13 +1,11 @@
 package core.services
 
 import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestKit
-import common.ErrorMessage
-import core.dal.{AccountAccessor, CustomerAccessor}
-import core.model.{Account, AccountFixture, AccountId, CustomerId}
-import util.ActorSpecBase
-
 import akka.pattern.ask
+import akka.testkit.TestKit
+import core.dal.CustomerAccessor
+import core.model.CustomerId
+import util.ActorSpecBase
 
 import scala.concurrent.Promise
 
@@ -44,4 +42,3 @@ class CustomerServiceSpec extends TestKit(ActorSystem("CustomerService")) with A
     customerService.ask(CustomerService.CreateCustomer(CustomerDTO(name))).mapTo[CustomerId].awaitResult
   }
 }
-

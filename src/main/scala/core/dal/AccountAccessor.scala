@@ -8,7 +8,7 @@ object AccountAccessor extends DataAccessorProtocol {
 
   val Id = "account-accessor"
 
-  case class GetCustomerAccounts(customerId: CustomerId)
+  case class FindCustomerAccounts(customerId: CustomerId)
 
   case class WithdrawMoney(accountId: AccountId, amount: Money)
 
@@ -29,7 +29,7 @@ class AccountAccessor extends DataAccessor[Account, AccountId] {
   import AccountAccessor._
 
   def receiveFun: Receive = {
-    case GetCustomerAccounts(customerId) =>
+    case FindCustomerAccounts(customerId) =>
       sender ! getAllEntities.filter(_.customerId == customerId)
     case WithdrawMoney(accountId, amount) =>
       sender ! updateAccount(accountId, account => account.withdrawMoney(amount))

@@ -6,7 +6,7 @@ import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsVa
 import squants.market.Money
 
 trait AccountJsonProtocol {
-  this: DefaultJsonProtocol with CustomerJsonProtocol =>
+  this: DefaultJsonProtocol with CustomerJsonProtocol with CommonJsonProtocol =>
 
   implicit val accountIdJsonFormat = new ModelEntityKeyJsonFormat[AccountId]
 

@@ -15,6 +15,8 @@ trait DataAccessorProtocol {
 
   case class CreateEntity[EntityType <: ModelEntity, KeyType <: ModelEntityKey](entity: EntityType)
 
+  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType)
+
 }
 
 object DataAccessor extends DataAccessorProtocol
@@ -37,6 +39,8 @@ abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey
     case CreateEntity(entity) =>
       createEntity(entity = entity.asInstanceOf[EntityType])
       sender ! entity.id
+    case CheckIfEntityExistsById(id) =>
+      sender ! entitiesMap.contains(id.asInstanceOf[KeyType])
   }
 
   def receive = receiveBase orElse receiveFun
