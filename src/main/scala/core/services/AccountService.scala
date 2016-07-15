@@ -24,7 +24,7 @@ object AccountService {
 
   object Errors {
 
-    case object CustomerWithSpecifiedIdDoesntExist extends ErrorMessage {
+    case object CustomerWithSpecifiedIdDoesntExistErrorMsg extends ErrorMessage {
       val text = "Customer with specified id doesn't exist"
     }
 
@@ -59,7 +59,7 @@ class AccountService extends Actor with LookupBusinessActor with DefaultTimeout 
           accountAccessor.ask(AccountAccessor.CreateEntity(account)).mapTo[AccountId].
             map(accountId => Right(ServiceSuccess(accountId)))
         else
-          Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExist)
+          Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg)
     )
   }
 
@@ -77,7 +77,7 @@ class AccountService extends Actor with LookupBusinessActor with DefaultTimeout 
           accountAccessor.ask(AccountAccessor.FindCustomerAccounts(customerId)).mapTo[List[Account]]
             map(accounts => Right(ServiceSuccess(AccountsDTO(accounts))))
         else
-          Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExist)
+          Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg)
     )
   }
 

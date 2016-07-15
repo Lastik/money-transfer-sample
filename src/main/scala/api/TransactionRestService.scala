@@ -13,7 +13,7 @@ import spray.routing.Directives
 import scala.concurrent.ExecutionContext
 
 class TransactionRestService(implicit executionContext: ExecutionContext, implicit val system: ActorSystem) extends RestServiceBase
-  with Directives with DefaultJsonProtocol with TransactionJsonProtocol with CommonJsonProtocol with AccountJsonProtocol with CustomerJsonProtocol {
+  with Directives with DefaultJsonProtocol with CommonJsonProtocol with AccountJsonProtocol with CustomerJsonProtocol with TransactionJsonProtocol {
 
   val transactionService = lookup(TransactionService.Id)
 
