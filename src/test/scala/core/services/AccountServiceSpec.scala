@@ -7,12 +7,14 @@ import core.model.{Account, AccountId, CustomerId}
 import util.ActorSpecBase
 import akka.pattern.ask
 import common.{ErrorMessage, ServiceSuccess}
+import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
 import squants.Money
 import squants.market.RUB
 
 import scala.concurrent.Promise
 
-class AccountServiceSpec extends TestKit(ActorSystem("AccountService")) with ActorSpecBase {
+class AccountServiceSpec extends TestKit(ActorSystem("AccountService")) with ActorSpecBase
+  with CustomerServiceHelper with AccountServiceHelper{
 
   val accountAccessor = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
   val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor]), CustomerAccessor.Id)
@@ -107,21 +109,6 @@ class AccountServiceSpec extends TestKit(ActorSystem("AccountService")) with Act
         case Right(ServiceSuccess(foundAccountsDTO)) => fail()
       }
     }
-  }
-
-  def createCustomer(name: String) = {
-    customerService.ask(CustomerService.CreateCustomer(CustomerDTO(name))).
-      mapTo[CustomerId].awaitResult
-  }
-
-  def createAccount(customerId: CustomerId, balance: Money) = {
-    accountService.ask(AccountService.CreateAccount(AccountDTO(customerId = customerId, balance = balance))).
-      mapTo[Either[ErrorMessage, ServiceSuccess[AccountId]]].awaitResult
-  }
-
-  def findAccountById(accountId: AccountId) = {
-    accountService.ask(AccountService.FindAccountById(accountId)).
-      mapTo[Either[ErrorMessage, ServiceSuccess[Account]]].awaitResult
   }
 
   def findCustomerAccounts(customerId: CustomerId) = {

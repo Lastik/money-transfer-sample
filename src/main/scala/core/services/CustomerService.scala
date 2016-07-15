@@ -2,7 +2,6 @@ package core.services
 
 import akka.actor.Actor
 import akka.pattern.{ask, pipe}
-import common.ErrorMessage
 import common.actors.LookupBusinessActor
 import core.DefaultTimeout
 import core.dal.CustomerAccessor
@@ -10,7 +9,6 @@ import core.model.{Customer, CustomerId}
 import core.services.CustomerService.{CreateCustomer, GetAllCustomers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object CustomerService{
 

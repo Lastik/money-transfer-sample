@@ -5,11 +5,13 @@ import akka.pattern.ask
 import akka.testkit.TestKit
 import core.dal.CustomerAccessor
 import core.model.CustomerId
+import core.services.helpers.CustomerServiceHelper
 import util.ActorSpecBase
 
 import scala.concurrent.Promise
 
-class CustomerServiceSpec extends TestKit(ActorSystem("CustomerService")) with ActorSpecBase {
+class CustomerServiceSpec extends TestKit(ActorSystem("CustomerService")) with ActorSpecBase
+with CustomerServiceHelper {
 
   val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor]), CustomerAccessor.Id)
   val customerService = system.actorOf(Props(classOf[CustomerService]), CustomerService.Id)
@@ -36,9 +38,5 @@ class CustomerServiceSpec extends TestKit(ActorSystem("CustomerService")) with A
       allCustomers.data.map(_.id).toSet shouldEqual Set(customerId, otherCustomerId)
     }
 
-  }
-
-  def createCustomer(name: String) = {
-    customerService.ask(CustomerService.CreateCustomer(CustomerDTO(name))).mapTo[CustomerId].awaitResult
   }
 }

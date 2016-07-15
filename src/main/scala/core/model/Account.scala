@@ -31,18 +31,13 @@ case class Account(id: AccountId = AccountId(), customerId: CustomerId, balance:
   }
 
   private def updateMoneyBalance(delta: Money) = {
-    if (balance.currency != delta.currency) {
-      Left(WrongCurrencyForAmountSpecifiedErrorMsg)
+    val updatedAmountOfMoney = balance + delta
+
+    if (updatedAmountOfMoney.value < 0) {
+      Left(InsufficientAmountOfMoneyOnAccountErrorMgs)
     }
     else {
-      val updatedAmountOfMoney = balance + delta
-
-      if (updatedAmountOfMoney.value < 0) {
-        Left(InsufficientAmountOfMoneyOnAccountErrorMgs)
-      }
-      else {
-        Right(this.copy(balance = balance + delta))
-      }
+      Right(this.copy(balance = balance + delta))
     }
   }
 }
