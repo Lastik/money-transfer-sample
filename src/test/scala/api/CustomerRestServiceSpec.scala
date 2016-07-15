@@ -79,5 +79,21 @@ class CustomerRestServiceSpec extends Specification with Specs2RouteTest with Ht
         success
       }
     }
+
+    "fail to return list of accounts for non existed customer" in {
+
+      val customerId = CustomerId()
+
+      Get(s"/customers/$customerId/accounts") ~> route ~> check {
+        status == StatusCodes.OK
+
+        val accountsResponse = responseAs[Either[ErrorMessage, ServiceSuccess[AccountsDTO]]]
+
+        accountsResponse match{
+          case Left(error) => success
+          case Right(ServiceSuccess(accountsDTO)) => failure
+        }
+      }
+    }
   }
 }

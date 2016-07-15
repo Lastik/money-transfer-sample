@@ -27,7 +27,9 @@ class AccountRestService(implicit executionContext: ExecutionContext, implicit v
               case scala.util.Success(res) => complete(res)
               case scala.util.Failure(ex) => failWith(ex)
             }
-          } ~
+          }
+      } ~
+        pathEnd {
           post {
             entity(as[AccountDTO]) { accountDTO =>
               onComplete(accountService.ask(AccountService.CreateAccount(accountDTO)).mapTo[Either[ErrorMessage, ServiceSuccess[AccountId]]]) {
@@ -36,6 +38,6 @@ class AccountRestService(implicit executionContext: ExecutionContext, implicit v
               }
             }
           }
-      }
+        }
     }
 }
