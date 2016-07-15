@@ -1,23 +1,26 @@
-package integration.api
+package api
 
-import api.json.{AccountJsonProtocol, CustomerJsonProtocol}
+import api.json.{AccountJsonProtocol, CommonJsonProtocol, CustomerJsonProtocol}
+import common.{ErrorMessage, ServiceSuccess}
 import core._
-import core.model.Customer
-import core.services.CustomersDTO
-import spray.testkit.Specs2RouteTest
-import spray.routing.{Directives, HttpService}
+import core.model.CustomerId
+import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
+import core.services.{AccountsDTO, CustomerDTO, CustomersDTO}
 import org.specs2.mutable.{BeforeAfter, Specification}
-import spray.http.{HttpResponse, StatusCodes}
+import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
+import spray.routing.HttpService
+import spray.testkit.Specs2RouteTest
 import util.AwaitHelper
 
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 
-/*class CustomerRestServiceSpec extends Specification with Specs2RouteTest with HttpService
-  with CoreActors with Core  with SprayJsonSupport with BeforeAfter with DefaultTimeout
-  with CustomerJsonProtocol with AccountJsonProtocol with DefaultJsonProtocol with AwaitHelper {
+class CustomerRestServiceSpec extends Specification with Specs2RouteTest with HttpService
+   with Core with CoreActors  with SprayJsonSupport with BeforeAfter with DefaultTimeout
+  with DefaultJsonProtocol with CommonJsonProtocol with CustomerJsonProtocol with AccountJsonProtocol with AwaitHelper
+  with AccountServiceHelper with CustomerServiceHelper {
 
   def actorRefFactory = system
 
@@ -31,26 +34,50 @@ import scala.concurrent.duration._
 
   implicit val routeTestTimeout = RouteTestTimeout(DurationInt(5).seconds)
 
-  val customersPromise: Promise[List[Customer]] = Promise()
+  val customerIdPromise: Promise[CustomerId] = Promise()
+
+  def getCreatedCustomerId = customerIdPromise.future.awaitResult
 
   "CustomerRestService" should {
+
+    "create customer" in {
+      val customer = CustomerDTO("Stan Smith")
+
+      Post(s"/customers", customer) ~> route ~> check {
+        status === StatusCodes.OK
+        val customerId = responseAs[CustomerId]
+        customerIdPromise.success(customerId)
+        success
+      }
+    }
+
     "return list of customers" in {
       Get(s"/customers") ~> route ~> check {
         status === StatusCodes.OK
         val customersDTO = responseAs[CustomersDTO]
-        customersPromise.success(customersDTO.data)
         customersDTO.data.nonEmpty shouldEqual true
+        customersDTO.data.map(_.id).contains(getCreatedCustomerId) shouldEqual true
       }
     }
 
-    "return list of accounts for each cusromer" in {
-      val customers = customersPromise.future.awaitResult
-      customers.forall(customer => {
-        Get(s"/customers/${customer.id}/accounts") ~> route ~> check {
-          status == StatusCodes.OK
+
+    "return list of accounts for customer" in {
+
+      val customerId = createCustomer("Some Customer")
+      val accountForCustomer = createAccount(customerId)
+
+      Get(s"/customers/$customerId/accounts") ~> route ~> check {
+        status == StatusCodes.OK
+
+        val accountsResponse = responseAs[Either[ErrorMessage, ServiceSuccess[AccountsDTO]]]
+
+        accountsResponse match{
+          case Left(error) => failure(error.text)
+          case Right(ServiceSuccess(accountsDTO)) => accountsDTO.accounts.length shouldEqual 1
         }
-      }) shouldEqual true
+
+        success
+      }
     }
   }
 }
-*/

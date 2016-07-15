@@ -2,21 +2,24 @@ package core.services.helpers
 
 import akka.actor.ActorRef
 import akka.pattern.ask
+import akka.util.Timeout
 import common.{ErrorMessage, ServiceSuccess}
-import core.DefaultTimeout
 import core.model.{Account, AccountId, CustomerId}
 import core.services._
 import squants._
-import util.{ActorSpecBase, AwaitHelper}
+import squants.market.RUB
+import util.AwaitHelper
 
 import scala.concurrent.Promise
 
 trait AccountServiceHelper {
-  this: ActorSpecBase =>
+  this: AwaitHelper =>
+
+  implicit def timeout: Timeout
 
   def accountService: ActorRef
 
-  def createAccount(customerId: CustomerId, balance: Money) = {
+  def createAccount(customerId: CustomerId, balance: Money = RUB(1000)) = {
     accountService.ask(AccountService.CreateAccount(AccountDTO(customerId = customerId, balance = balance))).
       mapTo[Either[ErrorMessage, ServiceSuccess[AccountId]]].awaitResult
   }

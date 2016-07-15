@@ -1,7 +1,7 @@
 package api.json
 
 import common.{ErrorMessage, ServiceSuccess}
-import spray.json.{DefaultJsonProtocol, JsBoolean, JsObject, JsString, JsValue, JsonFormat, RootJsonFormat}
+import spray.json.{DefaultJsonProtocol, DeserializationException, JsBoolean, JsFalse, JsObject, JsString, JsTrue, JsValue, JsonFormat, RootJsonFormat}
 
 trait CommonJsonProtocol {
   this: DefaultJsonProtocol =>
@@ -13,7 +13,12 @@ trait CommonJsonProtocol {
     }
 
     override def read(json: JsValue): ServiceSuccess[A] = {
-      throw new UnsupportedOperationException("Not supported")
+      val root = json.asJsObject
+      (root.fields.get("ok"), root.fields.get("result")) match {
+        case (Some(JsTrue), Some(jsValue)) => ServiceSuccess(format.read(jsValue))
+
+        case _ => throw new DeserializationException("JSON not a ServiceSuccess")
+      }
     }
   }
 
@@ -24,9 +29,17 @@ trait CommonJsonProtocol {
     }
 
     override def read(json: JsValue): ErrorMessage = {
-      throw new UnsupportedOperationException("Not supported")
+      val root = json.asJsObject
+      (root.fields.get("ok"), root.fields.get("error")) match {
+        case (Some(JsFalse), Some(JsString(errorText))) => new ErrorMessage {
+          val text = errorText
+        }
+
+        case _ => throw new DeserializationException("JSON not a ErrorMessage")
+      }
     }
   }
+
 
   implicit def rootEitherFormat[A : RootJsonFormat, B : RootJsonFormat] = new RootJsonFormat[Either[A, B]] {
     val format = DefaultJsonProtocol.eitherFormat[A, B]
