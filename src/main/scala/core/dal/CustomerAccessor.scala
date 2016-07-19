@@ -1,20 +1,21 @@
 package core.dal
 
 import akka.actor.{ActorRef, Props}
+import akka.routing.ConsistentHashingRouter.ConsistentHashable
 import common.ErrorMessage
-import core.dal.base.{DataAccessor, RouteMessageById, DataAccessorProtocol, DataAccessorWorker}
+import core.dal.base.{DataAccessor, DataAccessorProtocol, DataAccessorWorker}
 import core.model.{AccountId, Customer, CustomerId}
 
 object CustomerAccessor extends DataAccessorProtocol {
   val Id = "customer-accessor"
 
-  case class GetCustomerAccounts(customerId: CustomerId) extends RouteMessageById[CustomerId] {
-    def id = customerId
+  case class GetCustomerAccounts(customerId: CustomerId) extends ConsistentHashable {
+    def consistentHashKey = customerId
   }
 
   case class LinkCustomerWithAccount(customerId: CustomerId, accountId: AccountId)
-    extends RouteMessageById[CustomerId] {
-    def id = customerId
+    extends ConsistentHashable {
+    def consistentHashKey = customerId
   }
 
   object Errors {

@@ -1,8 +1,9 @@
 package core.dal
 
 import akka.actor.{ActorRef, Props}
+import akka.routing.ConsistentHashingRouter.ConsistentHashable
 import common.ErrorMessage
-import core.dal.base.{DataAccessor, RouteMessageById, DataAccessorProtocol, DataAccessorWorker}
+import core.dal.base.{DataAccessor, DataAccessorProtocol, DataAccessorWorker}
 import core.model.{Account, AccountId}
 import squants.Money
 
@@ -10,12 +11,12 @@ object AccountAccessor extends DataAccessorProtocol {
 
   val Id = "account-accessor"
 
-  case class WithdrawMoney(accountId: AccountId, amount: Money) extends RouteMessageById[AccountId] {
-    def id = accountId
+  case class WithdrawMoney(accountId: AccountId, amount: Money) extends ConsistentHashable {
+    def consistentHashKey = accountId
   }
 
-  case class DepositMoney(accountId: AccountId, amount: Money) extends RouteMessageById[AccountId]{
-    def id = accountId
+  case class DepositMoney(accountId: AccountId, amount: Money) extends ConsistentHashable {
+    def consistentHashKey = accountId
   }
 
   object Errors {

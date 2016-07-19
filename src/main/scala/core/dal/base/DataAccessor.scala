@@ -2,7 +2,7 @@ package core.dal.base
 
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.{ask, pipe}
-import akka.routing.{ActorRefRoutee, Router}
+import akka.routing.{ActorRefRoutee, ConsistentHashingRoutingLogic, Router}
 import core.DefaultTimeout
 import core.model.{ModelEntity, ModelEntityKey}
 
@@ -17,7 +17,8 @@ abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey
 
   val workers = (1 to nrOfWorkers).map(_ => createWorker())
 
-  val router = Router(new DataAccessorMessagesRoutingLogic(), workers.map(worker => ActorRefRoutee(worker)))
+  val router = Router(new ConsistentHashingRoutingLogic(system = context.system),
+    workers.map(worker => ActorRefRoutee(worker)))
 
   def receiveFun: Receive
 
@@ -27,19 +28,8 @@ abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey
         worker.ask(GetAllEntities()).mapTo[List[ModelEntity]])).map(res => {
         res.flatten.toList
       }) pipeTo sender
-    case routeMessageById: RouteMessageById[_] =>
-      router.route(routeMessageById, sender)
-    case routeMessageByEntity: RouteMessageByEntity[_] =>
-      router.route(routeMessageByEntity, sender)
+    case message => router.route(message, sender)
   }
 
   def receive = receiveBase orElse receiveFun
-}
-
-trait RouteMessageById[KeyType <: ModelEntityKey] {
-  def id: KeyType
-}
-
-trait RouteMessageByEntity[EntityType <: ModelEntity] {
-  def entity: EntityType
 }

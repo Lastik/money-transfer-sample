@@ -1,6 +1,7 @@
 package core.dal.base
 
 import akka.actor.Actor
+import akka.routing.ConsistentHashingRouter.ConsistentHashable
 import core.model.{ModelEntity, ModelEntityKey}
 
 import scala.collection.mutable
@@ -9,13 +10,21 @@ trait DataAccessorProtocol {
 
   case class GetAllEntities()
 
-  case class FindEntityById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
+  case class FindEntityById[KeyType <: ModelEntityKey](id: KeyType) extends ConsistentHashable {
+    def consistentHashKey = id
+  }
 
-  case class GetEntityById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
+  case class GetEntityById[KeyType <: ModelEntityKey](id: KeyType) extends ConsistentHashable {
+    def consistentHashKey = id
+  }
 
-  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
+  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType) extends ConsistentHashable {
+    def consistentHashKey = id
+  }
 
-  case class CreateEntity[EntityType <: ModelEntity](entity: EntityType) extends RouteMessageByEntity[EntityType]
+  case class CreateEntity[EntityType <: ModelEntity](entity: EntityType) extends ConsistentHashable {
+    def consistentHashKey = entity.id
+  }
 
 }
 
