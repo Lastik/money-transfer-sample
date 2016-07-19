@@ -1,4 +1,4 @@
-package core.dal.util
+package core.dal.base.util
 
 import java.util.UUID
 

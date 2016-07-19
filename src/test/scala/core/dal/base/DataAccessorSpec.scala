@@ -1,13 +1,12 @@
-package core.dal
+package core.dal.base
 
 import _root_.util.ActorSpecBase
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.testkit.TestKit
-import core.dal.util.{TestEntity, TestEntityAccessor, TestEntityId}
+import core.dal.base.util.{TestEntity, TestEntityAccessor, TestEntityId}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Promise
 
 class DataAccessorSpec extends TestKit(ActorSystem("DataAccessor")) with ActorSpecBase {

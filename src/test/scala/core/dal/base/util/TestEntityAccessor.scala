@@ -1,4 +1,4 @@
-package core.dal.util
+package core.dal.base.util
 
 import akka.actor.{ActorRef, Props}
 import core.dal.base.{DataAccessor, DataAccessorProtocol, DataAccessorWorker}
