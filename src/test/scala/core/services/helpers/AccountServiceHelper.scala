@@ -10,7 +10,9 @@ import squants._
 import squants.market.RUB
 import util.AwaitHelper
 
-import scala.concurrent.Promise
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.{Future, Promise}
 
 trait AccountServiceHelper {
   this: AwaitHelper =>
@@ -33,6 +35,25 @@ trait AccountServiceHelper {
           throw new IllegalStateException()
       }
       createAccountResult
+    }
+  }
+
+  def createAccounts(customerId: CustomerId, amountOfAccounts: Int, balanceOnEachAccount: Money = RUB(1000)) = {
+    Future.sequence((1 to amountOfAccounts).map(_ =>{
+      accountService.ask(AccountService.CreateAccount(AccountDTO(customerId = customerId, balance = balanceOnEachAccount))).
+        mapTo[Either[ErrorMessage, ServiceSuccess[AccountId]]].map{
+        case Right(ServiceSuccess(accountId)) =>
+          accountId
+        case _ =>
+          throw new IllegalStateException()
+      }
+    })).map(_.toList).awaitResult
+  }
+
+  implicit class CreateAccountsResultExtensions(createAccountsResult: List[AccountId]) {
+    def saveToPromise(promise: Promise[List[AccountId]]): List[AccountId] = {
+      promise.success(createAccountsResult)
+      createAccountsResult
     }
   }
 

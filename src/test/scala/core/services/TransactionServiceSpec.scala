@@ -10,7 +10,9 @@ import common.{ErrorMessage, ServiceSuccess}
 import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
 import squants.market.{RUB, USD}
 
-import scala.concurrent.Promise
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.{Future, Promise}
 
 class TransactionServiceSpec extends TestKit(ActorSystem("TransactionService")) with ActorSpecBase
   with CustomerServiceHelper with AccountServiceHelper {
@@ -35,11 +37,8 @@ class TransactionServiceSpec extends TestKit(ActorSystem("TransactionService")) 
   def getCustomerHomerSimpsonDollarAccountId = customerHomerSimpsonDollarAccountIdPromise.future.awaitResult
 
   override protected def beforeAll(): Unit = {
-    val stanSmithCustomerId = createCustomer("Stan Smith")
-    val homerSimpsonCustomerId = createCustomer("Stan Smith")
-
-    customerStanSmithIdPromise.success(stanSmithCustomerId)
-    customerHomerSimpsonIdPromise.success(homerSimpsonCustomerId)
+    val stanSmithCustomerId = createCustomer("Stan Smith").saveToPromise(customerStanSmithIdPromise)
+    val homerSimpsonCustomerId = createCustomer("Homer Simpson").saveToPromise(customerHomerSimpsonIdPromise)
 
     createAccount(stanSmithCustomerId, USD(1000)).saveToPromise(customerStanSmithDollarAccountIdPromise)
     createAccount(stanSmithCustomerId, RUB(20000)).saveToPromise(customerStanSmithRublesAccountIdPromise)
@@ -166,11 +165,146 @@ class TransactionServiceSpec extends TestKit(ActorSystem("TransactionService")) 
       val homerSimpsonDollarAccountAfterTransfer = findAccountById(homerSimpsonDollarAccountId).right.get.result
       homerSimpsonDollarAccountAfterTransfer.balance > USD(600) shouldEqual true
     }
+
+    "Be able to do A->B and B->C in parallel with many accounts" in {
+
+      val customerA = createCustomer("A")
+      val customerB = createCustomer("B")
+      val customerC = createCustomer("C")
+
+      val customerAAccounts = createAccounts(customerId = customerA, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+      val customerBAccounts = createAccounts(customerId = customerB, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+      val customerCAccounts = createAccounts(customerId = customerC, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+
+      val aToBtransactions = customerAAccounts.zip(customerBAccounts).map({
+        case (customerAAccountId, customerBAccountId) =>
+          Transaction(from = customerAAccountId, to = customerBAccountId, amount = RUB(10000))
+      })
+
+      val bToCtransactions = customerBAccounts.zip(customerCAccounts).map({
+        case (customerBAccountId, customerCAccountId) =>
+          Transaction(from = customerBAccountId, to = customerCAccountId, amount = RUB(10000))
+      })
+
+      val allTransactions = aToBtransactions ++ bToCtransactions
+
+      processTransactionsInParallel(allTransactions).foreach {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(_) =>
+      }
+
+      findCustomerAccounts(customerA) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(90000))
+      }
+
+      findCustomerAccounts(customerB) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(100000))
+      }
+
+      findCustomerAccounts(customerC) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(110000))
+      }
+    }
+
+    "Be able to do A->B and A->C in parallel with many accounts" in {
+
+      val customerA = createCustomer("A")
+      val customerB = createCustomer("B")
+      val customerC = createCustomer("C")
+
+      val customerAAccounts = createAccounts(customerId = customerA, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+      val customerBAccounts = createAccounts(customerId = customerB, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+      val customerCAccounts = createAccounts(customerId = customerC, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+
+      val aToBtransactions = customerAAccounts.zip(customerBAccounts).map({
+        case (customerAAccountId, customerBAccountId) =>
+          Transaction(from = customerAAccountId, to = customerBAccountId, amount = RUB(10000))
+      })
+
+      val aToCtransactions = customerAAccounts.zip(customerCAccounts).map({
+        case (customerAAccountId, customerCAccountId) =>
+          Transaction(from = customerAAccountId, to = customerCAccountId, amount = RUB(10000))
+      })
+
+      val allTransactions = aToBtransactions ++ aToCtransactions
+
+      processTransactionsInParallel(allTransactions).foreach {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(_) =>
+      }
+
+      findCustomerAccounts(customerA) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(80000))
+      }
+
+      findCustomerAccounts(customerB) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(110000))
+      }
+
+      findCustomerAccounts(customerC) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(110000))
+      }
+    }
+
+    "Be able to do A->B and B->A in parallel with many accounts" in {
+
+      val customerA = createCustomer("A")
+      val customerB = createCustomer("B")
+
+      val customerAAccounts = createAccounts(customerId = customerA, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+      val customerBAccounts = createAccounts(customerId = customerB, amountOfAccounts = 100, balanceOnEachAccount = RUB(100000))
+
+      val aToBtransactions = customerAAccounts.zip(customerBAccounts).map({
+        case (customerAAccountId, customerBAccountId) =>
+          Transaction(from = customerAAccountId, to = customerBAccountId, amount = RUB(10000))
+      })
+
+      val bToAtransactions = customerAAccounts.zip(customerBAccounts).map({
+        case (customerAAccountId, customerBAccountId) =>
+          Transaction(from = customerBAccountId, to = customerAAccountId, amount = RUB(10000))
+      })
+
+      val allTransactions = aToBtransactions ++ bToAtransactions
+
+      processTransactionsInParallel(allTransactions).foreach {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(_) =>
+      }
+
+      findCustomerAccounts(customerA) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(100000))
+      }
+
+      findCustomerAccounts(customerB) match {
+        case Left(errorMessage) => fail(errorMessage.text)
+        case Right(ServiceSuccess(AccountsDTO(accounts))) =>
+          accounts.foreach(_.balance shouldEqual RUB(100000))
+      }
+    }
   }
 
 
   def processTransaction(transaction: Transaction): Either[ErrorMessage, ServiceSuccess[String]] = {
     transactionService.ask(TransactionService.ProcessTransaction(transaction)).
       mapTo[Either[ErrorMessage, ServiceSuccess[String]]].awaitResult
+  }
+
+  def processTransactionsInParallel(transactions: List[Transaction]): List[Either[ErrorMessage, ServiceSuccess[String]]] = {
+    Future.sequence(transactions.map(transaction => transactionService.ask(TransactionService.ProcessTransaction(transaction)).
+      mapTo[Either[ErrorMessage, ServiceSuccess[String]]])).awaitResult
   }
 }
