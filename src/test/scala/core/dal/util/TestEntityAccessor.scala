@@ -1,7 +1,7 @@
 package core.dal.util
 
 import akka.actor.{ActorRef, Props}
-import core.dal.{DataAccessor, DataAccessorProtocol, DataAccessorWorker}
+import core.dal.base.{DataAccessor, DataAccessorProtocol, DataAccessorWorker}
 
 object TestEntityAccessor extends DataAccessorProtocol{
   val Id = "test-entity-accessor"

@@ -11,7 +11,7 @@ trait CustomerJsonProtocol {
 
   implicit val customerIdNamePairJsonFormat = jsonFormat2(CustomerIdNamePair.apply)
 
-  implicit val customerDTOJsonFormat = jsonFormat1(CustomerCreateDTO.apply)
+  implicit val customerCreateDTOJsonFormat = jsonFormat1(CustomerCreateDTO.apply)
 
   implicit val customersDTOJsonFormat = jsonFormat1(CustomersDTO.apply)
 

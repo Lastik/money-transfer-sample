@@ -2,6 +2,7 @@ package core.dal
 
 import akka.actor.{ActorRef, Props}
 import common.ErrorMessage
+import core.dal.base.{DataAccessor, RouteMessageById, DataAccessorProtocol, DataAccessorWorker}
 import core.model.{Account, AccountId}
 import squants.Money
 
@@ -9,11 +10,11 @@ object AccountAccessor extends DataAccessorProtocol {
 
   val Id = "account-accessor"
 
-  case class WithdrawMoney(accountId: AccountId, amount: Money) extends DataAccessorMessageWithId[AccountId] {
+  case class WithdrawMoney(accountId: AccountId, amount: Money) extends RouteMessageById[AccountId] {
     def id = accountId
   }
 
-  case class DepositMoney(accountId: AccountId, amount: Money) extends DataAccessorMessageWithId[AccountId]{
+  case class DepositMoney(accountId: AccountId, amount: Money) extends RouteMessageById[AccountId]{
     def id = accountId
   }
 

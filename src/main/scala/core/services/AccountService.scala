@@ -59,7 +59,7 @@ class AccountService extends Actor with LookupBusinessActor with DefaultTimeout 
         if (customerExists)
           for {
             createdAccountId <- accountAccessor.ask(AccountAccessor.CreateEntity(account)).mapTo[AccountId]
-            _ <- customerAccessor.ask(CustomerAccessor.LinkAccountWithCustomer(account.customerId, account.id))
+            _ <- customerAccessor.ask(CustomerAccessor.LinkCustomerWithAccount(account.customerId, account.id))
           } yield Right(ServiceSuccess(createdAccountId))
         else
           Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg)

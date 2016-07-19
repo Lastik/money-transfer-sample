@@ -2,17 +2,18 @@ package core.dal
 
 import akka.actor.{ActorRef, Props}
 import common.ErrorMessage
+import core.dal.base.{DataAccessor, RouteMessageById, DataAccessorProtocol, DataAccessorWorker}
 import core.model.{AccountId, Customer, CustomerId}
 
 object CustomerAccessor extends DataAccessorProtocol {
   val Id = "customer-accessor"
 
-  case class GetCustomerAccounts(customerId: CustomerId) extends DataAccessorMessageWithId[CustomerId] {
+  case class GetCustomerAccounts(customerId: CustomerId) extends RouteMessageById[CustomerId] {
     def id = customerId
   }
 
-  case class LinkAccountWithCustomer(customerId: CustomerId, accountId: AccountId)
-    extends DataAccessorMessageWithId[CustomerId] {
+  case class LinkCustomerWithAccount(customerId: CustomerId, accountId: AccountId)
+    extends RouteMessageById[CustomerId] {
     def id = customerId
   }
 
@@ -39,7 +40,7 @@ class CustomerAccessorWorker extends DataAccessorWorker[Customer, CustomerId] {
   def receiveFun: Receive = {
     case GetCustomerAccounts(customerId) =>
       sender ! getEntityById(customerId).accounts
-    case LinkAccountWithCustomer(customerId, accountId) =>
+    case LinkCustomerWithAccount(customerId, accountId) =>
       sender ! (findEntityById(customerId) match {
         case Some(customer) =>
           val updatedCustomer = customer.linkWithAccount(accountId)

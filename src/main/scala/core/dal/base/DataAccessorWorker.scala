@@ -1,4 +1,4 @@
-package core.dal
+package core.dal.base
 
 import akka.actor.Actor
 import core.model.{ModelEntity, ModelEntityKey}
@@ -9,13 +9,13 @@ trait DataAccessorProtocol {
 
   case class GetAllEntities()
 
-  case class FindEntityById[KeyType <: ModelEntityKey](id: KeyType) extends DataAccessorMessageWithId[KeyType]
+  case class FindEntityById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
 
-  case class GetEntityById[KeyType <: ModelEntityKey](id: KeyType) extends DataAccessorMessageWithId[KeyType]
+  case class GetEntityById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
 
-  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType) extends DataAccessorMessageWithId[KeyType]
+  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType) extends RouteMessageById[KeyType]
 
-  case class CreateEntity[EntityType <: ModelEntity](entity: EntityType) extends DataAccessorMessageWithEntity[EntityType]
+  case class CreateEntity[EntityType <: ModelEntity](entity: EntityType) extends RouteMessageByEntity[EntityType]
 
 }
 
