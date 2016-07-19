@@ -14,7 +14,7 @@ object CustomerService{
 
   val Id = "customer-service"
 
-  case class CreateCustomer(customerDTO: CustomerDTO)
+  case class CreateCustomer(customerDTO: CustomerCreateDTO)
 
   case class GetAllCustomers()
 }
@@ -30,15 +30,24 @@ class CustomerService extends Actor with LookupBusinessActor with DefaultTimeout
       getAllCustomers pipeTo sender
   }
 
-  def createCustomer(customerDTO: CustomerDTO) = {
+  def createCustomer(customerDTO: CustomerCreateDTO) = {
     customerAccessor.ask(CustomerAccessor.CreateEntity(Customer.apply(customerDTO))).mapTo[CustomerId]
   }
 
   def getAllCustomers = {
-    customerAccessor.ask(CustomerAccessor.GetAllEntities()).mapTo[List[Customer]].map(CustomersDTO.apply)
+    customerAccessor.ask(CustomerAccessor.GetAllEntities()).mapTo[List[Customer]].map(
+      customers => CustomersDTO.apply(customers.map(CustomerIdNamePair.fromCustomer)))
   }
 }
 
-case class CustomerDTO(name: String)
+case class CustomerCreateDTO(name: String)
 
-case class CustomersDTO(data: List[Customer])
+case class CustomerIdNamePair(id: CustomerId, name: String)
+
+object CustomerIdNamePair {
+  def fromCustomer(customer: Customer) = {
+    CustomerIdNamePair(id = customer.id, name = customer.name)
+  }
+}
+
+case class CustomersDTO(data: List[CustomerIdNamePair])

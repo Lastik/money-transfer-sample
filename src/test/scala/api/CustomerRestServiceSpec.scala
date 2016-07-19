@@ -5,7 +5,7 @@ import common.{ErrorMessage, ServiceSuccess}
 import core._
 import core.model.CustomerId
 import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
-import core.services.{AccountsDTO, CustomerDTO, CustomersDTO}
+import core.services.{AccountsDTO, CustomerCreateDTO, CustomersDTO}
 import org.specs2.mutable.{BeforeAfter, Specification}
 import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport
@@ -41,7 +41,7 @@ class CustomerRestServiceSpec extends Specification with Specs2RouteTest with Ht
   "CustomerRestService" should {
 
     "create customer" in {
-      val customer = CustomerDTO("Stan Smith")
+      val customer = CustomerCreateDTO("Stan Smith")
 
       Post(s"/customers", customer) ~> route ~> check {
         status === StatusCodes.OK

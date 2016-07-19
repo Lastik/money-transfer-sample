@@ -11,8 +11,8 @@ import util.ActorSpecBase
 class DemoDataLoaderSpec extends TestKit(ActorSystem("DemoDataLoader")) with ActorSpecBase
   with CustomerServiceHelper with AccountServiceHelper {
 
-  val accountAccessor = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
-  val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor]), CustomerAccessor.Id)
+  val accountAccessor = system.actorOf(Props(classOf[AccountAccessor], 3), AccountAccessor.Id)
+  val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor], 3), CustomerAccessor.Id)
 
   val accountService = system.actorOf(Props(classOf[AccountService]), AccountService.Id)
   val customerService = system.actorOf(Props(classOf[CustomerService]), CustomerService.Id)

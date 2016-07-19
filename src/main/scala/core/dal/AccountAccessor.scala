@@ -1,18 +1,21 @@
 package core.dal
 
+import akka.actor.{ActorRef, Props}
 import common.ErrorMessage
-import core.model.{Account, AccountId, CustomerId}
+import core.model.{Account, AccountId}
 import squants.Money
 
 object AccountAccessor extends DataAccessorProtocol {
 
   val Id = "account-accessor"
 
-  case class FindCustomerAccounts(customerId: CustomerId)
+  case class WithdrawMoney(accountId: AccountId, amount: Money) extends DataAccessorMessageWithId[AccountId] {
+    def id = accountId
+  }
 
-  case class WithdrawMoney(accountId: AccountId, amount: Money)
-
-  case class DepositMoney(accountId: AccountId, amount: Money)
+  case class DepositMoney(accountId: AccountId, amount: Money) extends DataAccessorMessageWithId[AccountId]{
+    def id = accountId
+  }
 
   object Errors {
 
@@ -24,13 +27,18 @@ object AccountAccessor extends DataAccessorProtocol {
 
 }
 
-class AccountAccessor extends DataAccessor[Account, AccountId] {
+class AccountAccessor(nrOfWorkers: Int) extends DataAccessor[Account, AccountId](nrOfWorkers = nrOfWorkers) {
+
+  def receiveFun: Receive = PartialFunction.empty
+
+  def createWorker(): ActorRef = context.actorOf(Props[AccountAccessorWorker])
+}
+
+class AccountAccessorWorker extends DataAccessorWorker[Account, AccountId] {
 
   import AccountAccessor._
 
   def receiveFun: Receive = {
-    case FindCustomerAccounts(customerId) =>
-      sender ! getAllEntities.filter(_.customerId == customerId)
     case WithdrawMoney(accountId, amount) =>
       sender ! updateAccount(accountId, account => account.withdrawMoney(amount))
     case DepositMoney(accountId, amount) =>

@@ -27,7 +27,7 @@ class CustomerRestService(implicit executionContext: ExecutionContext, implicit 
             case scala.util.Failure(ex) => failWith(ex)
           }
         } ~
-          post(entity(as[CustomerDTO]) { customerDTO =>
+          post(entity(as[CustomerCreateDTO]) { customerDTO =>
             onComplete(customerService.ask(CustomerService.CreateCustomer(customerDTO)).mapTo[CustomerId]) {
               case scala.util.Success(res) => complete(res)
               case scala.util.Failure(ex) => failWith(ex)

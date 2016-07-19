@@ -1,74 +1,49 @@
 package core.dal
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
 import core.model.{ModelEntity, ModelEntityKey}
+import akka.pattern.{ask, pipe}
+import akka.routing.{ActorRefRoutee, Router}
+import common.ModelEntityKeyAsRouteRoutingLogic
+import core.DefaultTimeout
 
-import scala.collection.mutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-trait DataAccessorProtocol {
+abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey](nrOfWorkers: Int) extends Actor with DefaultTimeout {
 
-  case class GetAllEntities()
+  import DataAccessorWorker._
 
-  case class FindEntityById[KeyType <: ModelEntityKey](id: KeyType)
+  def createWorker(): ActorRef
 
-  case class GetEntityById[KeyType <: ModelEntityKey](id: KeyType)
+  val workers = (1 to nrOfWorkers).map(_ => createWorker())
 
-  case class CreateEntity[EntityType <: ModelEntity, KeyType <: ModelEntityKey](entity: EntityType)
-
-  case class CheckIfEntityExistsById[KeyType <: ModelEntityKey](id: KeyType)
-
-}
-
-object DataAccessor extends DataAccessorProtocol
-
-abstract class DataAccessor[EntityType <: ModelEntity, KeyType <: ModelEntityKey] extends Actor {
-
-  import DataAccessor._
-
-  private var entitiesMap = mutable.Map[KeyType, EntityType]()
+  val router = {
+    val routees = workers.map(worker => ActorRefRoutee(worker))
+    Router(new ModelEntityKeyAsRouteRoutingLogic(), routees)
+  }
 
   def receiveFun: Receive
 
   def receiveBase: Receive = {
     case GetAllEntities() =>
-      sender ! entitiesMap.values.toList
-    case FindEntityById(id) =>
-      sender ! findEntityById(id.asInstanceOf[KeyType])
-    case GetEntityById(id) =>
-      sender ! findEntityById(id.asInstanceOf[KeyType]).getOrElse(throw new IllegalArgumentException("Entity with specified id not found"))
-    case CreateEntity(entity) =>
-      createEntity(entity = entity.asInstanceOf[EntityType])
-      sender ! entity.id
-    case CheckIfEntityExistsById(id) =>
-      sender ! entitiesMap.contains(id.asInstanceOf[KeyType])
+      Future.sequence(workers.map(worker =>
+        worker.ask(GetAllEntities()).mapTo[List[ModelEntity]])).map(res => {
+        res.flatten.toList
+      }) pipeTo sender
+    case dalMessageWithId: DataAccessorMessageWithId[_] =>
+      router.route(dalMessageWithId, sender)
+    case dalMessageWithEntity: DataAccessorMessageWithEntity[_] =>
+      router.route(dalMessageWithEntity, sender)
   }
 
   def receive = receiveBase orElse receiveFun
+}
 
-  def createEntity(entity: EntityType) {
-    val entityId = entity.id.asInstanceOf[KeyType]
-    if (entitiesMap.contains(entityId)) {
-      throw new IllegalArgumentException("Attempt to insert entity which already exists")
-    }
-    entitiesMap(entity.id.asInstanceOf[KeyType]) = entity
-  }
+trait DataAccessorMessageWithId[KeyType <: ModelEntityKey] {
+  def id: KeyType
+}
 
-  def updateEntity(entity: EntityType) {
-    val entityId = entity.id.asInstanceOf[KeyType]
-    if (!entitiesMap.contains(entityId)) {
-      throw new IllegalArgumentException("Attempt to update non existed entity")
-    }
-    entitiesMap(entity.id.asInstanceOf[KeyType]) = entity
-  }
-
-  def getEntityById(id: KeyType) = {
-    entitiesMap(id)
-  }
-
-  def findEntityById(id: KeyType) = {
-    entitiesMap.get(id)
-  }
-
-  def getAllEntities =
-    entitiesMap.values
+trait DataAccessorMessageWithEntity[EntityType <: ModelEntity] {
+  def entity: EntityType
 }

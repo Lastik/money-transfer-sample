@@ -5,7 +5,7 @@ import common.{ErrorMessage, ServiceSuccess}
 import core._
 import core.model.{AccountId, CustomerId, Transaction}
 import core.services.helpers.{AccountServiceHelper, CustomerServiceHelper}
-import core.services.{AccountsDTO, CustomerDTO, CustomersDTO}
+import core.services.{AccountsDTO, CustomerCreateDTO, CustomersDTO}
 import org.specs2.mutable.{BeforeAfter, Specification}
 import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport

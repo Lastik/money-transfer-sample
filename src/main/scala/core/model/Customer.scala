@@ -2,7 +2,7 @@ package core.model
 
 import java.util.UUID
 
-import core.services.CustomerDTO
+import core.services.CustomerCreateDTO
 
 case class CustomerId(id: String =  UUID.randomUUID().toString) extends ModelEntityKey
 
@@ -12,12 +12,16 @@ object CustomerId{
   }
 }
 
-case class Customer(id: CustomerId = CustomerId(), name: String) extends ModelEntity{
+case class Customer(id: CustomerId = CustomerId(), name: String, accounts: List[AccountId] = Nil) extends ModelEntity {
   type KeyType = CustomerId
+
+  def linkWithAccount(accountId: AccountId) = {
+    this.copy(accounts = accountId :: accounts)
+  }
 }
 
 object Customer {
-  def apply(customerDTO: CustomerDTO): Customer = {
-    Customer(name = customerDTO.name)
+  def apply(customerCreateDTO: CustomerCreateDTO): Customer = {
+    Customer(name = customerCreateDTO.name)
   }
 }

@@ -7,6 +7,7 @@ import common.{ErrorMessage, ServiceSuccess}
 import core.DefaultTimeout
 import core.dal.{AccountAccessor, CustomerAccessor}
 import core.model.{Account, AccountId, CustomerId}
+import core.services.AccountService.Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg
 import squants.market.Money
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -56,8 +57,10 @@ class AccountService extends Actor with LookupBusinessActor with DefaultTimeout 
     checkIfCustomerExists(account.customerId).flatMap(
       customerExists =>
         if (customerExists)
-          accountAccessor.ask(AccountAccessor.CreateEntity(account)).mapTo[AccountId].
-            map(accountId => Right(ServiceSuccess(accountId)))
+          for {
+            createdAccountId <- accountAccessor.ask(AccountAccessor.CreateEntity(account)).mapTo[AccountId]
+            _ <- customerAccessor.ask(CustomerAccessor.LinkAccountWithCustomer(account.customerId, account.id))
+          } yield Right(ServiceSuccess(createdAccountId))
         else
           Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg)
     )
@@ -70,12 +73,17 @@ class AccountService extends Actor with LookupBusinessActor with DefaultTimeout 
     }
   }
 
-  def findCustomerAccounts(customerId: CustomerId) = {
+  def findCustomerAccounts(customerId: CustomerId): Future[Either[ErrorMessage, ServiceSuccess[AccountsDTO]]] = {
     checkIfCustomerExists(customerId).flatMap(
       customerExists =>
         if (customerExists)
-          accountAccessor.ask(AccountAccessor.FindCustomerAccounts(customerId)).mapTo[List[Account]]
-            map(accounts => Right(ServiceSuccess(AccountsDTO(accounts))))
+          for {
+            accountsIds <- customerAccessor.ask(CustomerAccessor.GetCustomerAccounts(customerId)).mapTo[List[AccountId]]
+            accounts <- Future.sequence(accountsIds.map(accountId => accountAccessor.ask(AccountAccessor.FindEntityById(accountId)).
+              mapTo[Option[Account]])).map(_.flatten)
+          } yield {
+            Right(ServiceSuccess(AccountsDTO(accounts)))
+          }
         else
           Future successful Left(Errors.CustomerWithSpecifiedIdDoesntExistErrorMsg)
     )

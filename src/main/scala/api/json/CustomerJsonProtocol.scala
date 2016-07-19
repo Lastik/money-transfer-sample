@@ -1,7 +1,7 @@
 package api.json
 
 import core.model.{Customer, CustomerId}
-import core.services.{CustomerDTO, CustomersDTO}
+import core.services.{CustomerIdNamePair, CustomerCreateDTO, CustomersDTO}
 import spray.json.DefaultJsonProtocol
 
 trait CustomerJsonProtocol {
@@ -9,9 +9,9 @@ trait CustomerJsonProtocol {
 
   implicit val customerIdJsonFormat = new ModelEntityKeyJsonFormat[CustomerId]
 
-  implicit val customerJsonFormat = jsonFormat2(Customer.apply)
+  implicit val customerIdNamePairJsonFormat = jsonFormat2(CustomerIdNamePair.apply)
 
-  implicit val customerDTOJsonFormat = jsonFormat1(CustomerDTO.apply)
+  implicit val customerDTOJsonFormat = jsonFormat1(CustomerCreateDTO.apply)
 
   implicit val customersDTOJsonFormat = jsonFormat1(CustomersDTO.apply)
 

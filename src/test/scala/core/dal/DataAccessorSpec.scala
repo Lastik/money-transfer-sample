@@ -12,7 +12,7 @@ import scala.concurrent.Promise
 
 class DataAccessorSpec extends TestKit(ActorSystem("DataAccessor")) with ActorSpecBase {
 
-  val testEntityAccessor = system.actorOf(Props(classOf[TestEntityAccessor]), TestEntityAccessor.Id)
+  val testEntityAccessor = system.actorOf(Props(classOf[TestEntityAccessor], 3), TestEntityAccessor.Id)
 
   val testEntityPromise: Promise[TestEntity] = Promise()
 

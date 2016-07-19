@@ -1,6 +1,7 @@
 package core
 
 import akka.actor.{ActorSystem, Props}
+import akka.routing.RoundRobinPool
 import core.dal.{AccountAccessor, CustomerAccessor}
 import core.services.{AccountService, CustomerService, TransactionService}
 import demo.DemoDataLoader
@@ -41,12 +42,12 @@ trait BootedCore extends Core {
 trait CoreActors {
   this: Core =>
 
-  val accountAccessor    = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
-  val customerAccessor    = system.actorOf(Props(classOf[CustomerAccessor]), CustomerAccessor.Id)
+  val accountAccessor    = system.actorOf(Props(classOf[AccountAccessor], 3), AccountAccessor.Id)
+  val customerAccessor    = system.actorOf(Props(classOf[CustomerAccessor], 3), CustomerAccessor.Id)
 
-  val customerService    = system.actorOf(Props(classOf[CustomerService]), CustomerService.Id)
-  val accountService    = system.actorOf(Props(classOf[AccountService]), AccountService.Id)
-  val transactionService    = system.actorOf(Props(classOf[TransactionService]), TransactionService.Id)
+  val customerService    = system.actorOf(RoundRobinPool(3).props(Props[CustomerService]), CustomerService.Id)
+  val accountService    = system.actorOf(RoundRobinPool(3).props(Props[AccountService]), AccountService.Id)
+  val transactionService  = system.actorOf(RoundRobinPool(3).props(Props[TransactionService]), TransactionService.Id)
 
   val demoDataLoader = system.actorOf(Props(classOf[DemoDataLoader]), DemoDataLoader.Id)
   demoDataLoader ! LoadDemoData()

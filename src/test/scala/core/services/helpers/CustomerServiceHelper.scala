@@ -5,7 +5,7 @@ import akka.pattern.ask
 import akka.testkit.DefaultTimeout
 import akka.util.Timeout
 import core.model.CustomerId
-import core.services.{CustomerDTO, CustomerService, CustomersDTO}
+import core.services.{CustomerCreateDTO, CustomerService, CustomersDTO}
 import util.{ActorSpecBase, AwaitHelper}
 
 trait CustomerServiceHelper {
@@ -16,7 +16,7 @@ trait CustomerServiceHelper {
   def customerService: ActorRef
 
   def createCustomer(name: String) = {
-    customerService.ask(CustomerService.CreateCustomer(CustomerDTO(name))).mapTo[CustomerId].awaitResult
+    customerService.ask(CustomerService.CreateCustomer(CustomerCreateDTO(name))).mapTo[CustomerId].awaitResult
   }
 
   def getAllCustomers = {

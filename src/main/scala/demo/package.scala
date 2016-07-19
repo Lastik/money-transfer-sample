@@ -1,26 +1,33 @@
-import core.model.{Account, Customer}
+import core.model.{Account, Customer, CustomerId}
 import squants.market._
 
 package object demo {
 
-  object DemoCustomers {
-    val StanSmith = Customer(name = "Stan Smith")
-    val HomerSimpson = Customer(name = "Homer Simpson")
-
-    val Values = List(StanSmith, HomerSimpson)
-  }
+  val StanSmithCustomerId = CustomerId()
+  val HomerSimpsonCustomerId = CustomerId()
 
   object DemoAccounts {
 
-    import DemoCustomers._
     import Account._
 
-    val StanSmithRublesAccount = Account(customerId = StanSmith.id, balance = RUB(10000))
-    val StanSmithDollarAccount = Account(customerId = StanSmith.id, balance = USD(1000))
+    val StanSmithRublesAccount = Account(customerId = StanSmithCustomerId, balance = RUB(10000))
+    val StanSmithDollarAccount = Account(customerId = StanSmithCustomerId, balance = USD(1000))
 
-    val HomerSimpsonDollarAccount = Account(customerId = HomerSimpson.id, balance = USD(1000))
+    val HomerSimpsonDollarAccount = Account(customerId = HomerSimpsonCustomerId, balance = USD(1000))
 
     val Values = List(StanSmithRublesAccount, StanSmithDollarAccount, HomerSimpsonDollarAccount)
+  }
+
+  object DemoCustomers {
+
+    import DemoAccounts._
+
+    val StanSmith = Customer(id = StanSmithCustomerId, name = "Stan Smith",
+      accounts = List(StanSmithRublesAccount.id, StanSmithDollarAccount.id))
+    val HomerSimpson = Customer(id = HomerSimpsonCustomerId, name = "Homer Simpson",
+      accounts = List(HomerSimpsonDollarAccount.id))
+
+    val Values = List(StanSmith, HomerSimpson)
   }
 
 }

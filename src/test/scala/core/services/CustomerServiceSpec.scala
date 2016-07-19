@@ -13,7 +13,7 @@ import scala.concurrent.Promise
 class CustomerServiceSpec extends TestKit(ActorSystem("CustomerService")) with ActorSpecBase
 with CustomerServiceHelper {
 
-  val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor]), CustomerAccessor.Id)
+  val customerAccessor = system.actorOf(Props(classOf[CustomerAccessor], 3), CustomerAccessor.Id)
   val customerService = system.actorOf(Props(classOf[CustomerService]), CustomerService.Id)
 
   val customerIdPromise: Promise[CustomerId] = Promise()

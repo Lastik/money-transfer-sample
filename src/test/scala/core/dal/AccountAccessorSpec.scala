@@ -14,7 +14,7 @@ import scala.concurrent.Promise
 
 class AccountAccessorSpec extends TestKit(ActorSystem("AccountAccessor")) with ActorSpecBase {
 
-  val accountAccessor = system.actorOf(Props(classOf[AccountAccessor]), AccountAccessor.Id)
+  val accountAccessor = system.actorOf(Props(classOf[AccountAccessor], 3), AccountAccessor.Id)
 
   val accountPromise: Promise[Account] = Promise()
 
