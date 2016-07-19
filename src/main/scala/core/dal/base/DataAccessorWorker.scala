@@ -34,7 +34,7 @@ abstract class DataAccessorWorker[EntityType <: ModelEntity, KeyType <: ModelEnt
 
   import DataAccessorWorker._
 
-  private var entitiesMap = mutable.Map[KeyType, EntityType]()
+  private val entitiesMap = mutable.Map[KeyType, EntityType]()
 
   def receiveFun: Receive
 
